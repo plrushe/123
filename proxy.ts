@@ -4,11 +4,8 @@ import { getSupabaseEnv } from "@/lib/supabase/env";
 
 const PROTECTED_PATHS = ["/candidate", "/recruiter"];
 
-export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
-    request,
-  });
-
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
   const { url, anonKey } = getSupabaseEnv();
 
   const supabase = createServerClient(url, anonKey, {
@@ -17,7 +14,7 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       },
@@ -47,3 +44,7 @@ export async function updateSession(request: NextRequest) {
 
   return response;
 }
+
+export const config = {
+  matcher: ["/candidate/:path*", "/recruiter/:path*", "/login", "/signup"],
+};
