@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageContainer } from "@/components/PageContainer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Job } from "@/lib/jobs";
+import { ApplyJobForm } from "@/app/jobs/[id]/ApplyJobForm";
 
 type JobDetailsPageProps = {
   params: Promise<{ id: string }>;
@@ -10,6 +12,10 @@ type JobDetailsPageProps = {
 export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   const { id } = await params;
   const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data: job } = await supabase
     .from("jobs")
@@ -21,6 +27,13 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   if (!job) notFound();
 
   const selectedJob = job as Job;
+
+  const isCandidate = user?.user_metadata?.role === "candidate";
+  const isRecruiter = user?.user_metadata?.role === "recruiter";
+
+  const { data: existingApplication } = isCandidate
+    ? await supabase.from("applications").select("id").eq("job_id", id).eq("candidate_id", user.id).maybeSingle()
+    : { data: null };
 
   return (
     <main>
@@ -48,6 +61,22 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
               <h2 className="text-lg font-semibold text-slate-900">Requirements</h2>
               <p className="mt-2 whitespace-pre-wrap text-slate-700">{selectedJob.requirements}</p>
             </section>
+          ) : null}
+
+          {!user ? (
+            <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              Please <Link href="/login" className="font-semibold text-slate-900 underline-offset-4 hover:underline">sign in</Link> as a candidate to apply.
+            </div>
+          ) : isRecruiter ? (
+            <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              Only candidate accounts can apply to jobs.
+            </div>
+          ) : existingApplication ? (
+            <div className="mt-8 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+              You already applied to this role.
+            </div>
+          ) : isCandidate ? (
+            <ApplyJobForm jobId={id} />
           ) : null}
         </article>
       </PageContainer>

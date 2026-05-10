@@ -128,3 +128,59 @@ create policy "Recruiters can delete own jobs"
   for delete
   to authenticated
   using (auth.uid() = recruiter_id);
+
+create table if not exists public.applications (
+  id uuid primary key default gen_random_uuid(),
+  job_id uuid not null references public.jobs(id) on delete cascade,
+  candidate_id uuid not null references public.profiles(id) on delete cascade,
+  cover_letter text,
+  status text not null default 'submitted' check (status in ('submitted', 'reviewing', 'shortlisted', 'rejected')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (job_id, candidate_id)
+);
+
+create index if not exists applications_job_id_idx on public.applications (job_id);
+create index if not exists applications_candidate_id_idx on public.applications (candidate_id);
+create index if not exists applications_status_idx on public.applications (status);
+
+drop trigger if exists set_applications_updated_at on public.applications;
+create trigger set_applications_updated_at
+before update on public.applications
+for each row
+execute procedure public.set_updated_at();
+
+alter table public.applications enable row level security;
+
+create policy "Candidates can create own applications"
+  on public.applications
+  for insert
+  to authenticated
+  with check (
+    auth.uid() = candidate_id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+create policy "Candidates can read own applications"
+  on public.applications
+  for select
+  to authenticated
+  using (auth.uid() = candidate_id);
+
+create policy "Recruiters can read applications for own jobs"
+  on public.applications
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.jobs j
+      where j.id = job_id
+        and j.recruiter_id = auth.uid()
+    )
+  );
