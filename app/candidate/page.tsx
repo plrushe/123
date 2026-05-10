@@ -1,11 +1,28 @@
+import { redirect } from "next/navigation";
+import { signOutAction } from "@/app/auth/actions";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default function CandidatePage() {
+export default async function CandidatePage() {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
+  const role = data.user?.user_metadata?.role;
+
+  if (role !== "candidate") redirect("/recruiter");
+
   return (
     <main>
       <PageContainer>
-        <PageHeader title="Candidate Dashboard" description="This area will be the main home for teacher activity, recommendations, and progress." />
+        <div className="mt-12 flex items-start justify-between gap-4">
+          <PageHeader
+            title="Candidate Dashboard"
+            description="This area will be the main home for teacher activity, recommendations, and progress."
+          />
+          <form action={signOutAction}>
+            <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Sign out</button>
+          </form>
+        </div>
       </PageContainer>
     </main>
   );

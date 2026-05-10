@@ -1,11 +1,17 @@
+import { AuthForm } from "@/components/auth/AuthForm";
 import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
+import { signInAction } from "@/app/auth/actions";
 
 export default function LoginPage() {
   return (
     <main>
       <PageContainer>
-        <PageHeader title="Login" description="This page will let candidates, recruiters, and admins securely sign in to TeachBoard." />
+        <AuthForm
+          title="Welcome back"
+          description="Sign in to continue to your TeachBoard dashboard."
+          buttonLabel="Sign in"
+          action={signInAction}
+        />
       </PageContainer>
     </main>
   );
