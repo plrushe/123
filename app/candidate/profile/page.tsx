@@ -1,12 +1,8 @@
 import { redirect } from "next/navigation";
-import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CandidateProfileForm } from "@/app/candidate/profile/CandidateProfileForm";
 import type { CandidateProfile, CvFile } from "@/lib/candidate-profile";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { BackButton } from "@/components/BackButton";
-import { SectionNav } from "@/components/SectionNav";
+import { CandidateShell } from "@/components/CandidateShell";
 
 export default async function CandidateProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -19,22 +15,16 @@ export default async function CandidateProfilePage() {
 
   const [{ data: profile }, { data: cvFile }] = await Promise.all([
     supabase.from("candidate_profiles").select("*").eq("id", user.id).maybeSingle(),
-    supabase.from("cv_files").select("*").eq("candidate_id", user.id).order("uploaded_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("candidate_cv_files").select("*").eq("candidate_id", user.id).order("uploaded_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   return (
-    <main>
-      <PageContainer>
-        <div className="mt-12">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Candidate", href: "/candidate" }, { label: "Profile" }]} />
-          <div className="flex items-center justify-between gap-3">
-            <PageHeader title="Candidate Profile" description="Manage your teaching profile details and keep your CV up to date." />
-            <BackButton fallbackHref="/candidate" />
-          </div>
-          <SectionNav items={[{ label: "Dashboard", href: "/candidate" }, { label: "Profile", href: "/candidate/profile" }, { label: "Applications", href: "/candidate/applications" }]} />
-          <CandidateProfileForm profile={(profile as CandidateProfile | null) ?? null} cvFile={(cvFile as CvFile | null) ?? null} />
-        </div>
-      </PageContainer>
-    </main>
+    <CandidateShell activeHref="/candidate/profile">
+      <div className="rounded-2xl border border-amber-200 bg-white p-6">
+        <h1 className="text-3xl font-bold text-slate-900">Candidate Profile</h1>
+        <p className="mt-1 text-sm text-slate-600">Manage your teaching profile details and keep your CV up to date.</p>
+      </div>
+      <CandidateProfileForm profile={(profile as CandidateProfile | null) ?? null} cvFile={(cvFile as CvFile | null) ?? null} />
+    </CandidateShell>
   );
 }
