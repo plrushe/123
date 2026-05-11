@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { MainNavLinks } from "@/components/MainNavLinks";
 
-const navLinks = ["Jobs", "For Teachers", "For Recruiters", "Pricing", "Resources"];
 
 export async function Navbar() {
   const supabase = await createSupabaseServerClient();
@@ -17,13 +17,7 @@ export async function Navbar() {
     <header className="sticky top-0 z-10 border-b border-slate-200/80 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <div className="text-xl font-bold tracking-tight text-slate-900">TeachBoard</div>
-        <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
-          {navLinks.map((link) => (
-            <a key={link} href="#" className="transition hover:text-slate-900">
-              {link}
-            </a>
-          ))}
-        </nav>
+        <MainNavLinks />
 
         <div className="flex items-center gap-3">
           {user ? (

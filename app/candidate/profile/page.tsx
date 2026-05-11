@@ -4,6 +4,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CandidateProfileForm } from "@/app/candidate/profile/CandidateProfileForm";
 import type { CandidateProfile, CvFile } from "@/lib/candidate-profile";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { BackButton } from "@/components/BackButton";
+import { SectionNav } from "@/components/SectionNav";
 
 export default async function CandidateProfilePage() {
   const supabase = await createSupabaseServerClient();
@@ -23,7 +26,12 @@ export default async function CandidateProfilePage() {
     <main>
       <PageContainer>
         <div className="mt-12">
-          <PageHeader title="Candidate Profile" description="Manage your teaching profile details and keep your CV up to date." />
+          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Candidate", href: "/candidate" }, { label: "Profile" }]} />
+          <div className="flex items-center justify-between gap-3">
+            <PageHeader title="Candidate Profile" description="Manage your teaching profile details and keep your CV up to date." />
+            <BackButton fallbackHref="/candidate" />
+          </div>
+          <SectionNav items={[{ label: "Dashboard", href: "/candidate" }, { label: "Profile", href: "/candidate/profile" }, { label: "Applications", href: "/candidate/applications" }]} />
           <CandidateProfileForm profile={(profile as CandidateProfile | null) ?? null} cvFile={(cvFile as CvFile | null) ?? null} />
         </div>
       </PageContainer>

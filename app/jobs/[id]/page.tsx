@@ -4,6 +4,8 @@ import { PageContainer } from "@/components/PageContainer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Job } from "@/lib/jobs";
 import { ApplyJobForm } from "@/app/jobs/[id]/ApplyJobForm";
+import { BackButton } from "@/components/BackButton";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 type JobDetailsPageProps = {
   params: Promise<{ id: string }>;
@@ -38,7 +40,10 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   return (
     <main>
       <PageContainer>
-        <article className="mt-12 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="mt-12">
+          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Jobs", href: "/jobs" }, { label: "Job details" }]} />
+          <div className="mb-4"><BackButton fallbackHref="/jobs" /></div>
+        <article className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{selectedJob.company_name}</p>
           <h1 className="mt-2 text-3xl font-bold text-slate-900">{selectedJob.title}</h1>
           <p className="mt-2 text-slate-600">{selectedJob.location}</p>
@@ -79,6 +84,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
             <ApplyJobForm jobId={id} />
           ) : null}
         </article>
+        </div>
       </PageContainer>
     </main>
   );
