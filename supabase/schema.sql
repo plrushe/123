@@ -184,3 +184,158 @@ create policy "Recruiters can read applications for own jobs"
         and j.recruiter_id = auth.uid()
     )
   );
+
+create table if not exists public.candidate_profiles (
+  id uuid primary key references public.profiles(id) on delete cascade,
+  headline text,
+  bio text,
+  country_of_origin text,
+  current_location text,
+  target_location text,
+  years_experience integer,
+  tefl_status text,
+  degree_status text,
+  visa_status text,
+  availability text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists set_candidate_profiles_updated_at on public.candidate_profiles;
+create trigger set_candidate_profiles_updated_at
+before update on public.candidate_profiles
+for each row
+execute procedure public.set_updated_at();
+
+alter table public.candidate_profiles enable row level security;
+
+create policy "Candidates can read own profile details"
+  on public.candidate_profiles
+  for select
+  to authenticated
+  using (
+    auth.uid() = id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+create policy "Candidates can insert own profile details"
+  on public.candidate_profiles
+  for insert
+  to authenticated
+  with check (
+    auth.uid() = id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+create policy "Candidates can update own profile details"
+  on public.candidate_profiles
+  for update
+  to authenticated
+  using (auth.uid() = id)
+  with check (
+    auth.uid() = id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+create table if not exists public.cv_files (
+  id uuid primary key default gen_random_uuid(),
+  candidate_id uuid not null references public.profiles(id) on delete cascade,
+  file_name text not null,
+  file_path text not null unique,
+  file_size bigint,
+  mime_type text,
+  uploaded_at timestamptz not null default now()
+);
+
+create index if not exists cv_files_candidate_id_idx on public.cv_files (candidate_id);
+
+alter table public.cv_files enable row level security;
+
+create policy "Candidates can read own cv metadata"
+  on public.cv_files
+  for select
+  to authenticated
+  using (
+    auth.uid() = candidate_id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+create policy "Candidates can insert own cv metadata"
+  on public.cv_files
+  for insert
+  to authenticated
+  with check (
+    auth.uid() = candidate_id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+create policy "Candidates can delete own cv metadata"
+  on public.cv_files
+  for delete
+  to authenticated
+  using (
+    auth.uid() = candidate_id
+    and exists (
+      select 1
+      from public.profiles p
+      where p.id = auth.uid()
+        and p.role = 'candidate'
+    )
+  );
+
+-- Supabase Storage setup for CV uploads (run in SQL editor once per project)
+insert into storage.buckets (id, name, public)
+values ('candidate-cvs', 'candidate-cvs', false)
+on conflict (id) do nothing;
+
+create policy "Candidates can upload own cv objects"
+  on storage.objects
+  for insert
+  to authenticated
+  with check (
+    bucket_id = 'candidate-cvs'
+    and auth.uid()::text = split_part(name, '/', 1)
+  );
+
+create policy "Candidates can read own cv objects"
+  on storage.objects
+  for select
+  to authenticated
+  using (
+    bucket_id = 'candidate-cvs'
+    and auth.uid()::text = split_part(name, '/', 1)
+  );
+
+create policy "Candidates can delete own cv objects"
+  on storage.objects
+  for delete
+  to authenticated
+  using (
+    bucket_id = 'candidate-cvs'
+    and auth.uid()::text = split_part(name, '/', 1)
+  );
