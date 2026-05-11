@@ -3,46 +3,7 @@ import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/auth/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const sidebarItems = [
-  { label: "Dashboard", href: "/candidate", active: true },
-  { label: "Applications", href: "/candidate/applications" },
-  { label: "Saved Jobs", href: "/jobs" },
-  { label: "Messages", href: "#", badge: "2" },
-  { label: "Profile", href: "/candidate/profile" },
-  { label: "CV & Documents", href: "/candidate/profile" },
-  { label: "Settings", href: "#" },
-];
-
-const statCards = [
-  {
-    label: "Applications Submitted",
-    value: "12",
-    subtext: "Total applications submitted",
-    iconColor: "bg-blue-600",
-    lineColor: "text-blue-500",
-  },
-  {
-    label: "Under Review",
-    value: "4",
-    subtext: "Currently under review",
-    iconColor: "bg-amber-500",
-    lineColor: "text-amber-500",
-  },
-  {
-    label: "Shortlisted",
-    value: "2",
-    subtext: "Moved to next stage",
-    iconColor: "bg-emerald-500",
-    lineColor: "text-emerald-500",
-  },
-  {
-    label: "Rejected",
-    value: "1",
-    subtext: "Not selected",
-    iconColor: "bg-rose-500",
-    lineColor: "text-rose-500",
-  },
-];
+const sidebarItems = ["Dashboard", "Profile", "Applications", "Saved Jobs", "Messages", "Alerts", "Settings"];
 
 export default async function CandidatePage() {
   const supabase = await createSupabaseServerClient();
@@ -51,96 +12,87 @@ export default async function CandidatePage() {
 
   if (role !== "candidate") redirect("/recruiter");
 
-  const displayName = data.user?.user_metadata?.full_name ?? "Paul";
+  const displayName = data.user?.user_metadata?.full_name ?? "Alex";
 
   return (
-    <main className="min-h-screen bg-slate-100">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1280px]">
-        <aside className="w-64 border-r border-slate-200 bg-white px-5 py-8">
-          <h2 className="text-3xl font-bold text-blue-700">TeachBoard</h2>
-          <nav className="mt-10 space-y-2">
-            {sidebarItems.map((item) => (
+    <main className="min-h-screen bg-[#f8f2e8] py-10">
+      <div className="mx-auto grid w-full max-w-7xl gap-4 rounded-3xl border border-amber-200 bg-[#fffaf3] p-4 shadow-sm lg:grid-cols-[220px,1fr]">
+        <aside className="rounded-2xl border border-amber-100 bg-[#fff3e0] p-4">
+          <nav className="space-y-2">
+            {sidebarItems.map((item, index) => (
               <Link
-                key={item.label}
-                href={item.href}
-                className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${
-                  item.active
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
+                key={item}
+                href={item === "Applications" ? "/candidate/applications" : item === "Profile" ? "/candidate/profile" : "/candidate"}
+                className={`block rounded-lg px-3 py-2 text-sm font-medium ${index === 0 ? "bg-amber-200 text-amber-900" : "text-slate-700 hover:bg-amber-100"}`}
               >
-                <span>{item.label}</span>
-                {item.badge ? (
-                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">{item.badge}</span>
-                ) : null}
+                {item}
               </Link>
             ))}
           </nav>
+          <form action={signOutAction} className="mt-8 border-t border-amber-200 pt-4">
+            <button className="text-sm font-medium text-slate-700 hover:text-slate-900">Sign out</button>
+          </form>
         </aside>
 
-        <section className="flex-1 p-8">
-          <header className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex flex-wrap items-start justify-between gap-6">
+        <section className="space-y-4">
+          <div className="rounded-2xl border border-amber-200 bg-white p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h1 className="text-4xl font-bold tracking-tight text-slate-900">Welcome back, {displayName}</h1>
-                <p className="mt-3 text-lg text-slate-500">Here&apos;s what&apos;s happening with your job search.</p>
-                <div className="mt-6 flex gap-3">
-                  <button className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700">
-                    Search Jobs
-                  </button>
-                  <button className="rounded-lg border border-blue-600 px-6 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50">
-                    Upload CV
-                  </button>
-                </div>
+                <h1 className="text-3xl font-bold text-slate-900">Welcome back, {displayName}! 👋</h1>
+                <p className="mt-1 text-sm text-slate-600">Let&apos;s take the next step in your teaching journey.</p>
               </div>
-
-              <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <p className="text-sm font-semibold text-slate-700">Profile Completion</p>
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="grid h-16 w-16 place-items-center rounded-full border-4 border-blue-600 text-xl font-bold text-slate-800">
-                    85%
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Great job! Your profile is almost complete.</p>
-                    <Link href="/candidate/profile" className="mt-2 inline-block text-sm font-semibold text-blue-600">
-                      Complete your profile →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-900">Application Overview</h2>
-              <Link href="/candidate/applications" className="text-sm font-semibold text-blue-600">
-                View all applications →
-              </Link>
+              <div className="rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900">70% Profile complete</div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {statCards.map((card) => (
-                <article key={card.label} className="rounded-xl border border-slate-200 p-5">
-                  <div className="flex items-center gap-3">
-                    <span className={`h-8 w-8 rounded-full ${card.iconColor}`} />
-                    <p className="font-semibold text-slate-800">{card.label}</p>
-                  </div>
-                  <p className="mt-5 text-5xl font-bold text-slate-900">{card.value}</p>
-                  <p className="mt-2 text-sm text-slate-500">{card.subtext}</p>
-                  <svg className={`mt-4 h-8 w-full ${card.lineColor}`} viewBox="0 0 120 28" fill="none" aria-hidden>
-                    <path d="M2 24C16 24 22 10 34 10C45 10 50 20 63 20C79 20 87 4 101 4C108 4 113 6 118 6" stroke="currentColor" strokeWidth="2" />
-                  </svg>
+            <div className="mt-5 grid gap-3 sm:grid-cols-4">
+              {[
+                ["12", "Applications"],
+                ["4", "Under Review"],
+                ["2", "Shortlisted"],
+                ["1", "Rejected"],
+              ].map(([value, label]) => (
+                <article key={label} className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                  <p className="text-3xl font-bold text-amber-700">{value}</p>
+                  <p className="mt-1 text-sm font-medium text-slate-700">{label}</p>
                 </article>
               ))}
             </div>
           </div>
 
-          <form action={signOutAction} className="mt-6">
-            <button className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Sign out
-            </button>
-          </form>
+          <div className="grid gap-4 xl:grid-cols-[2fr,1fr]">
+            <div className="rounded-2xl border border-amber-200 bg-white p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-semibold text-slate-900">Recent Applications</h2>
+                <Link href="/candidate/applications" className="text-sm font-semibold text-amber-700">View all</Link>
+              </div>
+              <div className="space-y-3 text-sm">
+                {[
+                  "ESL Teacher — Primary School",
+                  "ESL Teacher — Global Academy",
+                  "Kindergarten Teacher",
+                ].map((item) => (
+                  <div key={item} className="rounded-lg border border-slate-200 p-3 text-slate-700">{item}</div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-amber-200 bg-white p-5">
+                <h2 className="font-semibold text-slate-900">Your CV</h2>
+                <p className="mt-2 text-sm text-slate-600">My_Resume.pdf • Updated 2 days ago</p>
+                <button className="mt-3 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white">Update CV</button>
+              </div>
+              <div className="rounded-2xl border border-amber-200 bg-white p-5">
+                <h2 className="font-semibold text-slate-900">Profile Checklist</h2>
+                <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                  <li>• Basic information</li>
+                  <li>• Uploaded CV</li>
+                  <li>• TEFL certificate</li>
+                  <li>• Work experience</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
     </main>
