@@ -339,3 +339,43 @@ create policy "Candidates can delete own cv objects"
     bucket_id = 'candidate-cvs'
     and auth.uid()::text = split_part(name, '/', 1)
   );
+
+create policy "Recruiters can read candidate base profiles"
+  on public.profiles
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.profiles recruiter
+      where recruiter.id = auth.uid()
+        and recruiter.role = 'recruiter'
+    )
+    and role = 'candidate'
+  );
+
+create policy "Recruiters can read candidate profiles"
+  on public.candidate_profiles
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.profiles recruiter
+      where recruiter.id = auth.uid()
+        and recruiter.role = 'recruiter'
+    )
+  );
+
+create policy "Recruiters can read candidate cv metadata"
+  on public.cv_files
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.profiles recruiter
+      where recruiter.id = auth.uid()
+        and recruiter.role = 'recruiter'
+    )
+  );

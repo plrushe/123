@@ -35,6 +35,6 @@
 - **Backend/Auth/DB**: Supabase
 
 ## Next Core Milestones
-- Recruiter-side candidate search and candidate profile viewing.
+- Recruiter-side candidate search and profile viewing is now live at `/recruiter/candidates`.
 - Recruiter job editing and closing workflow.
 - Basic jobs filtering/search.

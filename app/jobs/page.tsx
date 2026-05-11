@@ -22,7 +22,7 @@ export default async function JobsPage() {
           {publishedJobs.length === 0 ? (
             <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
               <p className="text-lg font-medium text-slate-900">No jobs published yet.</p>
-              <p className="mt-2 text-sm text-slate-600">Check back soon for new ESL opportunities.</p>
+              <p className="mt-2 text-sm text-slate-600">Check back soon for new ESL opportunities, or sign up to receive updates.</p>
             </div>
           ) : (
             <div className="mt-8 grid gap-4">
