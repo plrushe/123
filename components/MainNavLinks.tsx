@@ -19,7 +19,7 @@ export function MainNavLinks() {
       {links.map((link) => {
         const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
         return (
-          <Link key={link.href} href={link.href} className={isActive ? "text-slate-900 underline underline-offset-4" : "text-slate-600 hover:text-slate-900"}>
+          <Link key={link.href} href={link.href} className={isActive ? "text-amber-800 underline underline-offset-4" : "text-slate-600 hover:text-amber-800"}>
             {link.label}
           </Link>
         );
