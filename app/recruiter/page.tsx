@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOutAction } from "@/app/auth/actions";
 import { PageContainer } from "@/components/PageContainer";
@@ -23,6 +24,15 @@ export default async function RecruiterPage() {
             <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Sign out</button>
           </form>
         </div>
+
+        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">Recruiter tools</h2>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/recruiter/jobs" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Manage jobs</Link>
+            <Link href="/recruiter/applicants" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Review applicants</Link>
+            <Link href="/recruiter/candidates" className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Browse candidates</Link>
+          </div>
+        </section>
       </PageContainer>
     </main>
   );
