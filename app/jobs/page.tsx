@@ -15,9 +15,9 @@ export default async function JobsPage() {
   const publishedJobs = (jobs ?? []) as Job[];
 
   return (
-    <main>
+    <main className="min-h-screen py-10">
       <PageContainer>
-        <div className="mt-12">
+        <div className="rounded-3xl border border-amber-200 bg-[#fffaf3] p-6 shadow-sm">
           <PageHeader title="ESL Jobs" description="Browse published teaching opportunities from schools and recruiters." />
           {publishedJobs.length === 0 ? (
             <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
