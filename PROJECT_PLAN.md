@@ -10,8 +10,8 @@
 - Public landing page.
 - Public jobs listing and job details pages backed by Supabase (`/jobs`, `/jobs/[id]`).
 - Recruiter jobs management page for creating and reviewing own job posts (`/recruiter/jobs`).
-- Candidate area placeholders (profile + applications).
-- Recruiter company/applicants placeholders.
+- Candidate profile page and live applications tracking page.
+- Recruiter company placeholder and live applicants review page.
 - Admin area placeholder for future controls.
 - Authentication and profile role handling with Supabase.
 
@@ -35,6 +35,5 @@
 - **Backend/Auth/DB**: Supabase
 
 ## Next Core Milestones
-- Candidate application flow (apply to jobs and track status).
 - Recruiter job editing and closing workflow.
 - Basic jobs filtering/search.

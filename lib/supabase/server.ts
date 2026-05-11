@@ -11,8 +11,15 @@ export async function createSupabaseServerClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll() {
-        // Server Components cannot mutate cookies.
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // In some server component contexts cookie writes are unavailable.
+          // Middleware/client refresh will keep auth state in sync.
+        }
       },
     },
   });
