@@ -7,5 +7,6 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  background-color: rgba(248, 242, 232, 0.54);
+  @apply text-slate-900 antialiased;
 }
