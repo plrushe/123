@@ -14,39 +14,46 @@ export type PublicJob = Pick<
   | "created_at"
 >;
 
-export const EMPLOYMENT_TYPES = [
-  "Full-time",
-  "Part-time",
-  "Contract",
-  "Temporary",
-  "Internship",
-] as const;
+export const COUNTRY_OPTIONS = ["South Korea", "China", "Japan", "United Arab Emirates", "Costa Rica", "International"] as const;
+
+export const CITY_OPTIONS: Record<string, string[]> = {
+  "South Korea": ["Seoul", "Busan", "Incheon", "Daegu"],
+  China: ["Beijing", "Shanghai", "Shenzhen", "Guangzhou"],
+  Japan: ["Tokyo", "Osaka", "Nagoya", "Fukuoka"],
+  "United Arab Emirates": ["Dubai", "Abu Dhabi", "Sharjah"],
+  "Costa Rica": ["San José", "Alajuela", "Heredia"],
+};
+
+export const SCHOOL_TYPE_OPTIONS = ["Kindergarten", "Primary School", "Middle School", "High School", "College", "University"] as const;
+export const JOB_TYPE_OPTIONS = ["Full time", "Part time", "Online", "Hybrid"] as const;
+export const DATE_POSTED_OPTIONS = [3, 7, 14, 30] as const;
 
 export type JobFilterState = {
   keyword: string;
-  location: string;
-  employment_type: string;
-  visa_support: boolean;
+  country: string;
+  city: string;
+  school_type: string;
+  job_type: string;
+  posted_within_days: string;
   housing_provided: boolean;
+  verified_recruiter: boolean;
   tefl_required: boolean;
+  pgce_required: boolean;
 };
 
 export const DEFAULT_JOB_FILTERS: JobFilterState = {
   keyword: "",
-  location: "",
-  employment_type: "",
-  visa_support: false,
+  country: "",
+  city: "",
+  school_type: "",
+  job_type: "",
+  posted_within_days: "",
   housing_provided: false,
+  verified_recruiter: false,
   tefl_required: false,
+  pgce_required: false,
 };
 
 export function hasActiveFilters(filters: JobFilterState) {
-  return Boolean(
-    filters.keyword.trim() ||
-      filters.location.trim() ||
-      filters.employment_type ||
-      filters.visa_support ||
-      filters.housing_provided ||
-      filters.tefl_required,
-  );
+  return Object.entries(filters).some(([key, value]) => (typeof value === "boolean" ? value : key !== "keyword" ? Boolean(value.trim()) : Boolean(value.trim())));
 }
