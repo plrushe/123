@@ -6,7 +6,77 @@ import { CITY_OPTIONS, COUNTRY_OPTIONS, DATE_POSTED_OPTIONS, DEFAULT_JOB_FILTERS
 
 const PAGE_SIZE = 10;
 
-function JobCard({ job }: { job: PublicJob }) { return <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold text-slate-900">{job.title}</h2><p className="mt-1 text-sm text-slate-600">{job.company_name} • {job.location}</p><Link href={`/jobs/${job.id}`} className="mt-3 inline-block text-sm font-semibold underline">View details</Link></article>; }
+function formatPostedDate(createdAt: string) {
+  const ms = Date.now() - new Date(createdAt).getTime();
+  const days = Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24)));
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 5) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  return `${months}mo ago`;
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function JobCard({ job }: { job: PublicJob }) {
+  const tags = [
+    job.housing_provided ? "Housing provided" : null,
+    job.tefl_required ? "TEFL required" : null,
+    job.visa_support ? "Visa support" : null,
+  ].filter(Boolean) as string[];
+
+  return (
+    <article className="rounded-2xl border border-orange-100 bg-white px-4 py-3 shadow-[0_2px_10px_rgba(15,23,42,0.06)] transition hover:shadow-[0_4px_14px_rgba(15,23,42,0.1)]">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        <div className="flex items-start gap-3 min-[420px]:items-center">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-orange-200 bg-orange-50 text-sm font-semibold text-orange-700">
+            {getInitials(job.company_name || "TB")}
+          </div>
+
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-semibold leading-snug text-slate-900 md:text-lg">{job.title}</h2>
+            <p className="truncate text-sm font-medium text-slate-700">{job.company_name}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+              <span>{job.location}</span>
+              <span aria-hidden="true" className="text-slate-300">|</span>
+              <span>{job.employment_type || "Role type not listed"}</span>
+              <span aria-hidden="true" className="text-slate-300">|</span>
+              <span>Posted {formatPostedDate(job.created_at)}</span>
+            </div>
+            {tags.length > 0 ? (
+              <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Job highlights">
+                {tags.slice(0, 3).map((tag) => (
+                  <li key={tag} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-900">
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="md:ml-auto">
+          <div className="flex items-center justify-between gap-3 md:flex-col md:items-end md:justify-center">
+            <p className="text-sm font-semibold text-orange-700 md:text-base">{job.salary || "Salary not listed"}</p>
+            <Link
+              href={`/jobs/${job.id}`}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+            >
+              View details
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export function JobsBrowser({ initialJobs }: { initialJobs: PublicJob[] }) {
   const [isOpen, setIsOpen] = useState(false);
