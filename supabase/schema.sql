@@ -379,3 +379,75 @@ create policy "Recruiters can read candidate cv metadata"
         and recruiter.role = 'recruiter'
     )
   );
+
+create table if not exists public.recruiter_company_profiles (
+  recruiter_id uuid primary key references public.profiles(id) on delete cascade,
+  company_name text not null,
+  company_tagline text,
+  logo_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists set_recruiter_company_profiles_updated_at on public.recruiter_company_profiles;
+create trigger set_recruiter_company_profiles_updated_at
+before update on public.recruiter_company_profiles
+for each row
+execute procedure public.set_updated_at();
+
+alter table public.recruiter_company_profiles enable row level security;
+
+create policy "Recruiters can read own company profile"
+  on public.recruiter_company_profiles
+  for select
+  to authenticated
+  using (auth.uid() = recruiter_id);
+
+create policy "Recruiters can insert own company profile"
+  on public.recruiter_company_profiles
+  for insert
+  to authenticated
+  with check (auth.uid() = recruiter_id);
+
+create policy "Recruiters can update own company profile"
+  on public.recruiter_company_profiles
+  for update
+  to authenticated
+  using (auth.uid() = recruiter_id)
+  with check (auth.uid() = recruiter_id);
+
+create policy "Public can read company profiles"
+  on public.recruiter_company_profiles
+  for select
+  using (true);
+
+insert into storage.buckets (id, name, public)
+values ('recruiter-logos', 'recruiter-logos', true)
+on conflict (id) do nothing;
+
+create policy "Recruiters can upload own logos"
+  on storage.objects
+  for insert
+  to authenticated
+  with check (
+    bucket_id = 'recruiter-logos'
+    and split_part(name, '/', 1) = auth.uid()::text
+  );
+
+create policy "Recruiters can update own logos"
+  on storage.objects
+  for update
+  to authenticated
+  using (
+    bucket_id = 'recruiter-logos'
+    and split_part(name, '/', 1) = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'recruiter-logos'
+    and split_part(name, '/', 1) = auth.uid()::text
+  );
+
+create policy "Public can view recruiter logos"
+  on storage.objects
+  for select
+  using (bucket_id = 'recruiter-logos');

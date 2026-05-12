@@ -6,7 +6,7 @@ import { CITY_OPTIONS, COUNTRY_OPTIONS, DATE_POSTED_OPTIONS, DEFAULT_JOB_FILTERS
 
 const PAGE_SIZE = 10;
 
-function JobCard({ job }: { job: PublicJob }) { return <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="text-xl font-semibold text-slate-900">{job.title}</h2><p className="mt-1 text-sm text-slate-600">{job.company_name} • {job.location}</p><Link href={`/jobs/${job.id}`} className="mt-3 inline-block text-sm font-semibold underline">View details</Link></article>; }
+function JobCard({ job }: { job: PublicJob }) { const postedDays = Math.max(1, Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))); const chips = [job.housing_provided ? "Housing provided" : null, job.tefl_required ? "TEFL required" : null, job.visa_support ? "Visa support" : null].filter(Boolean); return <article className="overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm"><div className="flex items-stretch gap-4 p-4 md:p-5"><div className="w-1 rounded-full bg-orange-500" /><div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white p-2">{job.logo_url ? <img src={job.logo_url} alt={`${job.company_name} logo`} className="h-full w-full object-contain" /> : <span className="text-xl">🏫</span>}</div><div className="min-w-0 flex-1"><h2 className="text-2xl font-semibold text-slate-900">{job.title}</h2><p className="mt-1 text-sm text-slate-600">{job.company_name}{job.company_tagline ? ` • ${job.company_tagline}` : ""}</p><div className="mt-3 flex flex-wrap gap-2">{chips.map((chip) => <span key={chip} className="rounded-lg bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800">{chip}</span>)}</div><p className="mt-3 text-sm text-slate-600">{job.location} · {job.employment_type ?? "Role type TBD"} · Posted {postedDays}d ago · Exp: 1+ yr</p></div><div className="flex shrink-0 flex-col items-end justify-between gap-3"><p className="text-right text-xl font-bold text-orange-600">{job.salary ?? "Salary TBD"}</p><Link href={`/jobs/${job.id}`} className="rounded-xl bg-orange-500 px-5 py-2 text-sm font-semibold text-white hover:bg-orange-600">Apply now</Link></div></div></article>; }
 
 export function JobsBrowser({ initialJobs }: { initialJobs: PublicJob[] }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +53,7 @@ export function JobsBrowser({ initialJobs }: { initialJobs: PublicJob[] }) {
   }
 
   return <>
-    <div className="mt-6 flex justify-end"><button type="button" onClick={() => setIsOpen((v) => !v)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium">{isOpen ? "Hide filters" : "Show filters"}</button></div>
+    <div className="mt-2 flex justify-end"><button type="button" onClick={() => setIsOpen((v) => !v)} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium">{isOpen ? "Hide filters" : "Show filters"}</button></div>
     {isOpen ? <form onSubmit={applyFilters} className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
       <label className="block text-sm font-medium">Keyword<input className="mt-1 w-full rounded-lg border px-3 py-2" value={filters.keyword} onChange={(e) => setFilters((p) => ({ ...p, keyword: e.target.value }))} /></label>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
