@@ -3,6 +3,7 @@ import type { Job } from "@/lib/jobs";
 export type PublicJob = Pick<
   Job,
   | "id"
+  | "recruiter_id"
   | "title"
   | "company_name"
   | "location"
@@ -12,10 +13,13 @@ export type PublicJob = Pick<
   | "housing_provided"
   | "tefl_required"
   | "created_at"
->;
+> & {
+  company_tagline?: string | null;
+  logo_url?: string | null;
+};
 
 export const COUNTRY_OPTIONS = ["South Korea", "China", "Japan", "United Arab Emirates", "Costa Rica", "International"] as const;
-
+// ... unchanged
 export const CITY_OPTIONS: Record<string, string[]> = {
   "South Korea": ["Seoul", "Busan", "Incheon", "Daegu"],
   China: ["Beijing", "Shanghai", "Shenzhen", "Guangzhou"],

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { PublicJob } from "@/app/jobs/jobFilters";
 
+type CompanyProfile = { recruiter_id: string; logo_url: string | null; company_tagline: string | null };
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const keyword = searchParams.get("keyword")?.trim() ?? "";
@@ -17,7 +19,7 @@ export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("jobs")
-    .select("id, title, company_name, location, salary, employment_type, visa_support, housing_provided, tefl_required, created_at")
+    .select("id, recruiter_id, title, company_name, location, salary, employment_type, visa_support, housing_provided, tefl_required, created_at")
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
@@ -38,5 +40,13 @@ export async function GET(request: Request) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: "Unable to fetch jobs right now." }, { status: 500 });
 
-  return NextResponse.json({ jobs: (data ?? []) as PublicJob[] });
+  const recruiterIds = [...new Set((data ?? []).map((job) => job.recruiter_id))];
+  const { data: profiles } = recruiterIds.length
+    ? await supabase.from("recruiter_company_profiles").select("recruiter_id, logo_url, company_tagline").in("recruiter_id", recruiterIds)
+    : { data: [] as CompanyProfile[] };
+
+  const profileMap = new Map((profiles ?? []).map((profile) => [profile.recruiter_id, profile]));
+  const jobs = ((data ?? []) as PublicJob[]).map((job) => ({ ...job, ...profileMap.get(job.recruiter_id) }));
+
+  return NextResponse.json({ jobs });
 }
