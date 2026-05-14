@@ -4,71 +4,19 @@ import { RecruiterShell } from "@/components/RecruiterShell";
 import { PageHeader } from "@/components/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/lib/applications";
+import { updateApplicationStatusAction } from "@/app/recruiter/applicants/actions";
+import { calculateMatchScore } from "@/lib/match-score";
 
-type RecruiterApplicantRow = {
-  id: string;
-  cover_letter: string | null;
-  status: ApplicationStatus;
-  created_at: string;
-  jobs: {
-    id: string;
-    title: string;
-  } | null;
-  profiles: {
-    email: string;
-    full_name: string | null;
-  } | null;
-};
+type RecruiterApplicantRow = { id: string; cover_letter: string | null; status: ApplicationStatus; created_at: string; candidate_id: string; jobs: { id: string; title: string; location: string | null; tefl_required: boolean | null; employment_type: string | null; visa_support: boolean | null } | null; profiles: { email: string; full_name: string | null } | null; candidate_profiles: { target_location: string | null; tefl_status: string | null; degree_status: string | null; years_experience: number | null; visa_status: string | null; availability: string | null; employment_type_preference: string | null } | null };
 
 export default async function RecruiterApplicantsPage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   if (user.user_metadata?.role !== "recruiter") redirect("/candidate");
 
-  const { data: applications } = await supabase
-    .from("applications")
-    .select("id, cover_letter, status, created_at, jobs!inner(id, title), profiles!inner(email, full_name)")
-    .eq("jobs.recruiter_id", user.id)
-    .order("created_at", { ascending: false });
+  const { data: applications } = await supabase.from("applications").select("id, cover_letter, status, created_at, candidate_id, jobs!inner(id, title, location, tefl_required, employment_type, visa_support), profiles!inner(email, full_name), candidate_profiles(target_location, tefl_status, degree_status, years_experience, visa_status, availability, employment_type_preference)").eq("jobs.recruiter_id", user.id).order("created_at", { ascending: false });
+  const rows = ((applications ?? []) as unknown as RecruiterApplicantRow[]).map((a) => ({ ...a, jobs: Array.isArray(a.jobs) ? a.jobs[0] ?? null : a.jobs, profiles: Array.isArray(a.profiles) ? a.profiles[0] ?? null : a.profiles, candidate_profiles: Array.isArray(a.candidate_profiles) ? a.candidate_profiles[0] ?? null : a.candidate_profiles }));
 
-  const rows = (applications ?? []) as RecruiterApplicantRow[];
-
-  return (
-    <RecruiterShell activeHref="/recruiter/applicants">
-          <PageHeader title="Applicants" description="Review candidates who applied to your published jobs." />
-          <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            {rows.length === 0 ? (
-              <p className="text-sm text-slate-600">No applications yet. Once candidates apply, they will appear here.</p>
-            ) : (
-              <ul className="space-y-4">
-                {rows.map((application) => (
-                  <li key={application.id} className="rounded-xl border border-slate-200 p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h2 className="font-semibold text-slate-900">{application.profiles?.full_name ?? "Unnamed candidate"}</h2>
-                        <p className="text-sm text-slate-600">{application.profiles?.email ?? "No email"}</p>
-                        <p className="mt-1 text-sm text-slate-700">
-                          Applied to: {application.jobs ? <Link href={`/jobs/${application.jobs.id}`} className="underline-offset-4 hover:underline">{application.jobs.title}</Link> : "Unknown job"}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">Applied on {new Date(application.created_at).toLocaleDateString()}</p>
-                      </div>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-700">{application.status}</span>
-                    </div>
-                    {application.cover_letter ? (
-                      <div className="mt-3 rounded-lg bg-slate-50 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Cover letter</p>
-                        <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{application.cover_letter}</p>
-                      </div>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-    </RecruiterShell>
-  );
+  return <RecruiterShell activeHref="/recruiter/applicants"><PageHeader title="Applicants" description="Review, score, and manage candidates." /><section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">{rows.length===0?<p className="text-sm text-slate-600">No applications yet.</p>:<ul className="space-y-4">{rows.map((a)=>{const match=calculateMatchScore({jobLocation:a.jobs?.location,targetLocation:a.candidate_profiles?.target_location,teflRequired:a.jobs?.tefl_required??false,teflStatus:a.candidate_profiles?.tefl_status,degreeStatus:a.candidate_profiles?.degree_status,yearsExperience:a.candidate_profiles?.years_experience,visaSupport:a.jobs?.visa_support??false,visaStatus:a.candidate_profiles?.visa_status,availability:a.candidate_profiles?.availability,employmentType:a.jobs?.employment_type,employmentPreference:a.candidate_profiles?.employment_type_preference}); return <li key={a.id} className="rounded-xl border border-slate-200 p-4"><div className="flex items-start justify-between gap-4"><div><h2 className="font-semibold text-slate-900">{a.profiles?.full_name ?? "Unnamed candidate"}</h2><p className="text-sm text-slate-600">{a.profiles?.email ?? "No email"} • {match}% match</p><p className="mt-1 text-sm text-slate-700">Applied to: {a.jobs?.title ?? "Unknown job"}</p><p className="mt-1 text-xs text-slate-500">Applied on {new Date(a.created_at).toLocaleDateString()}</p></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-700">{a.status === "shortlisted" ? "whitelisted" : a.status}</span></div><div className="mt-3 flex flex-wrap gap-2"><Link href={`/recruiter/candidates/${a.candidate_id}`} className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-semibold">View profile</Link>{(["reviewing","shortlisted","rejected"] as ApplicationStatus[]).map((status)=><form key={status} action={updateApplicationStatusAction}><input type="hidden" name="application_id" value={a.id} /><input type="hidden" name="status" value={status} /><button className="rounded-lg bg-slate-900 px-3 py-1 text-xs font-semibold text-white">{status==="reviewing"?"Under review":status==="shortlisted"?"Whitelisted":"Rejected"}</button></form>)}</div>{a.cover_letter?<div className="mt-3 rounded-lg bg-slate-50 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Cover letter</p><p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{a.cover_letter}</p></div>:null}</li>;})}</ul>}</section></RecruiterShell>;
 }

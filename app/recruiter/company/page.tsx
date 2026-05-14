@@ -1,18 +1,11 @@
-import Link from "next/link";
 import { RecruiterShell } from "@/components/RecruiterShell";
 import { PageHeader } from "@/components/PageHeader";
 import { requireRecruiter } from "@/lib/auth-guards";
+import { saveCompanyProfileAction } from "@/app/recruiter/company/actions";
 
 export default async function RecruiterCompanyPage() {
-  await requireRecruiter();
+  const { supabase, user } = await requireRecruiter();
+  const { data } = await supabase.from("recruiter_company_profiles").select("company_name, location, logo_url, description, contact_email, contact_phone, website").eq("recruiter_id", user.id).maybeSingle();
 
-  return (
-    <RecruiterShell activeHref="/recruiter/company">
-          <PageHeader title="Company Profile" description="Manage school or company branding details for future public profile pages." />
-          <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-6">
-            <p className="text-sm text-slate-600">Company profile editing is coming soon.</p>
-            <Link href="/recruiter/jobs" className="mt-3 inline-block text-sm font-medium text-slate-900 underline-offset-4 hover:underline">Manage your jobs</Link>
-          </div>
-    </RecruiterShell>
-  );
+  return <RecruiterShell activeHref="/recruiter/company"><PageHeader title="Company Profile" description="Build your school/company profile." /><form action={saveCompanyProfileAction} className="mt-8 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="grid gap-4 md:grid-cols-2"><label className="text-sm font-medium">Company name<input name="company_name" defaultValue={data?.company_name ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm font-medium">Location<input name="location" defaultValue={data?.location ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm font-medium">School logo URL<input name="logo_url" defaultValue={data?.logo_url ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm font-medium">Contact email<input name="contact_email" defaultValue={data?.contact_email ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm font-medium">Contact phone<input name="contact_phone" defaultValue={data?.contact_phone ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label className="text-sm font-medium">Website<input name="website" defaultValue={data?.website ?? ""} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label></div><label className="block text-sm font-medium">Description<textarea name="description" defaultValue={data?.description ?? ""} rows={5} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><button className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Save profile</button></form></RecruiterShell>;
 }
