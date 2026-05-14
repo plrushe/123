@@ -54,6 +54,22 @@ begin
 end;
 $$;
 
+
+create or replace function public.has_role(target_role text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = target_role
+  );
+$$;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
@@ -158,12 +174,7 @@ create policy "Candidates can create own applications"
   to authenticated
   with check (
     auth.uid() = candidate_id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 create policy "Candidates can read own applications"
@@ -215,12 +226,7 @@ create policy "Candidates can read own profile details"
   to authenticated
   using (
     auth.uid() = id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 create policy "Candidates can insert own profile details"
@@ -229,12 +235,7 @@ create policy "Candidates can insert own profile details"
   to authenticated
   with check (
     auth.uid() = id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 create policy "Candidates can update own profile details"
@@ -244,12 +245,7 @@ create policy "Candidates can update own profile details"
   using (auth.uid() = id)
   with check (
     auth.uid() = id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 create table if not exists public.cv_files (
@@ -272,12 +268,7 @@ create policy "Candidates can read own cv metadata"
   to authenticated
   using (
     auth.uid() = candidate_id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 create policy "Candidates can insert own cv metadata"
@@ -286,12 +277,7 @@ create policy "Candidates can insert own cv metadata"
   to authenticated
   with check (
     auth.uid() = candidate_id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 create policy "Candidates can delete own cv metadata"
@@ -300,12 +286,7 @@ create policy "Candidates can delete own cv metadata"
   to authenticated
   using (
     auth.uid() = candidate_id
-    and exists (
-      select 1
-      from public.profiles p
-      where p.id = auth.uid()
-        and p.role = 'candidate'
-    )
+    and public.has_role('candidate')
   );
 
 -- Supabase Storage setup for CV uploads (run in SQL editor once per project)
@@ -345,12 +326,7 @@ create policy "Recruiters can read candidate base profiles"
   for select
   to authenticated
   using (
-    exists (
-      select 1
-      from public.profiles recruiter
-      where recruiter.id = auth.uid()
-        and recruiter.role = 'recruiter'
-    )
+    public.has_role('recruiter')
     and role = 'candidate'
   );
 
@@ -359,12 +335,7 @@ create policy "Recruiters can read candidate profiles"
   for select
   to authenticated
   using (
-    exists (
-      select 1
-      from public.profiles recruiter
-      where recruiter.id = auth.uid()
-        and recruiter.role = 'recruiter'
-    )
+    public.has_role('recruiter')
   );
 
 create policy "Recruiters can read candidate cv metadata"
@@ -372,10 +343,5 @@ create policy "Recruiters can read candidate cv metadata"
   for select
   to authenticated
   using (
-    exists (
-      select 1
-      from public.profiles recruiter
-      where recruiter.id = auth.uid()
-        and recruiter.role = 'recruiter'
-    )
+    public.has_role('recruiter')
   );
