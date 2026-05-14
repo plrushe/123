@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { PageContainer } from "@/components/PageContainer";
+import { RecruiterShell } from "@/components/RecruiterShell";
 import { PageHeader } from "@/components/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Job } from "@/lib/jobs";
@@ -24,9 +24,7 @@ export default async function RecruiterJobsPage() {
   const recruiterJobs = (jobs ?? []) as Job[];
 
   return (
-    <main>
-      <PageContainer>
-        <div className="mt-12">
+    <RecruiterShell activeHref="/recruiter/jobs">
           <PageHeader title="Manage jobs" description="Create and manage your posted roles." />
           <JobCreateForm />
           <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -52,8 +50,6 @@ export default async function RecruiterJobsPage() {
               </ul>
             )}
           </section>
-        </div>
-      </PageContainer>
-    </main>
+    </RecruiterShell>
   );
 }

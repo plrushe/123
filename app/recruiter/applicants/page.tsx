@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PageContainer } from "@/components/PageContainer";
+import { RecruiterShell } from "@/components/RecruiterShell";
 import { PageHeader } from "@/components/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/lib/applications";
@@ -38,9 +38,7 @@ export default async function RecruiterApplicantsPage() {
   const rows = (applications ?? []) as RecruiterApplicantRow[];
 
   return (
-    <main>
-      <PageContainer>
-        <div className="mt-12">
+    <RecruiterShell activeHref="/recruiter/applicants">
           <PageHeader title="Applicants" description="Review candidates who applied to your published jobs." />
           <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             {rows.length === 0 ? (
@@ -71,8 +69,6 @@ export default async function RecruiterApplicantsPage() {
               </ul>
             )}
           </section>
-        </div>
-      </PageContainer>
-    </main>
+    </RecruiterShell>
   );
 }

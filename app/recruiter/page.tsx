@@ -2,11 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ApplicationStatus } from "@/lib/applications";
 import type { JobStatus } from "@/lib/jobs";
-import { signOutAction } from "@/app/auth/actions";
-import { PageContainer } from "@/components/PageContainer";
+import { RecruiterShell } from "@/components/RecruiterShell";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { SectionNav } from "@/components/SectionNav";
 
 type RecruiterJobRow = {
   id: string;
@@ -95,87 +92,71 @@ export default async function RecruiterPage() {
   const newApplications = applicationStatusCounts.submitted;
 
   return (
-    <main>
-      <PageContainer>
-        <div className="mt-12 space-y-6">
-          <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Recruiter" }]} />
-          <SectionNav items={[{ label: "Dashboard", href: "/recruiter" }, { label: "Company", href: "/recruiter/company" }, { label: "Jobs", href: "/recruiter/jobs" }, { label: "Applicants", href: "/recruiter/applicants" }, { label: "Candidates", href: "/recruiter/candidates" }]} />
+    <RecruiterShell activeHref="/recruiter">
+      <div className="rounded-2xl border border-amber-200 bg-white p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Welcome back, {displayName}! 👋</h1>
+            <p className="mt-1 text-sm text-slate-600">Here's a snapshot of your hiring pipeline and recruiter activity.</p>
+          </div>
+          <div className="rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900">{newApplications} New applications</div>
+        </div>
 
-          <div className="rounded-2xl border border-amber-200 bg-white p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Welcome back, {displayName}! 👋</h1>
-                <p className="mt-1 text-sm text-slate-600">Here&apos;s a snapshot of your hiring pipeline and recruiter activity.</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900">{newApplications} New applications</div>
-                <form action={signOutAction}>
-                  <button className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Sign out</button>
-                </form>
-              </div>
-            </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          {(Object.keys(jobStatusLabel) as JobStatus[]).map((status) => (
+            <article key={status} className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+              <p className="text-3xl font-bold text-amber-700">{jobStatusCounts[status]}</p>
+              <p className="mt-1 text-sm font-medium text-slate-700">{jobStatusLabel[status]}</p>
+            </article>
+          ))}
+        </div>
+      </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {(Object.keys(jobStatusLabel) as JobStatus[]).map((status) => (
-                <article key={status} className="rounded-xl border border-amber-100 bg-amber-50 p-4">
-                  <p className="text-3xl font-bold text-amber-700">{jobStatusCounts[status]}</p>
-                  <p className="mt-1 text-sm font-medium text-slate-700">{jobStatusLabel[status]}</p>
-                </article>
+      <div className="grid gap-4 xl:grid-cols-[2fr,1fr]">
+        <div className="rounded-2xl border border-amber-200 bg-white p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-semibold text-slate-900">Recent Applicants</h2>
+            <Link href="/recruiter/applicants" className="text-sm font-semibold text-amber-700">View all</Link>
+          </div>
+          {applications.length === 0 ? (
+            <p className="text-sm text-slate-600">No applications yet. Share your listings to start receiving applicants.</p>
+          ) : (
+            <div className="space-y-3 text-sm">
+              {applications.slice(0, 3).map((item) => (
+                <div key={item.id} className="rounded-lg border border-slate-200 p-3 text-slate-700">
+                  <p className="font-medium">{item.profiles?.full_name ?? "Unnamed candidate"}</p>
+                  <p className="text-xs text-slate-500">{item.jobs?.title ?? "Job unavailable"} • {applicationStatusLabel[item.status]}</p>
+                </div>
               ))}
             </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-amber-200 bg-white p-5">
+            <h2 className="font-semibold text-slate-900">Application Pipeline</h2>
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              {(Object.keys(applicationStatusLabel) as ApplicationStatus[]).map((status) => (
+                <li key={status} className="flex items-center justify-between">
+                  <span>{applicationStatusLabel[status]}</span>
+                  <span className="font-semibold text-slate-900">{applicationStatusCounts[status]}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <div className="grid gap-4 xl:grid-cols-[2fr,1fr]">
-            <div className="rounded-2xl border border-amber-200 bg-white p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold text-slate-900">Recent Applicants</h2>
-                <Link href="/recruiter/applicants" className="text-sm font-semibold text-amber-700">View all</Link>
-              </div>
-              {applications.length === 0 ? (
-                <p className="text-sm text-slate-600">No applications yet. Share your listings to start receiving applicants.</p>
-              ) : (
-                <div className="space-y-3 text-sm">
-                  {applications.slice(0, 3).map((item) => (
-                    <div key={item.id} className="rounded-lg border border-slate-200 p-3 text-slate-700">
-                      <p className="font-medium">{item.profiles?.full_name ?? "Unnamed candidate"}</p>
-                      <p className="text-xs text-slate-500">{item.jobs?.title ?? "Job unavailable"} • {applicationStatusLabel[item.status]}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-amber-200 bg-white p-5">
-                <h2 className="font-semibold text-slate-900">Application Pipeline</h2>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
-                  {(Object.keys(applicationStatusLabel) as ApplicationStatus[]).map((status) => (
-                    <li key={status} className="flex items-center justify-between">
-                      <span>{applicationStatusLabel[status]}</span>
-                      <span className="font-semibold text-slate-900">{applicationStatusCounts[status]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-amber-200 bg-white p-5">
-                <h2 className="font-semibold text-slate-900">Recruiter Checklist</h2>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
-                  {pipelineChecklist.map((item) => (
-                    <li key={item.label} className="flex items-center justify-between">
-                      <span>{item.label}</span>
-                      <span>{item.complete ? "✅" : "○"}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Link href="/recruiter/jobs" className="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white">Manage jobs</Link>
-                  <Link href="/recruiter/candidates" className="rounded-lg border border-amber-300 px-3 py-2 text-xs font-semibold text-amber-800">Browse candidates</Link>
-                </div>
-              </div>
-            </div>
+          <div className="rounded-2xl border border-amber-200 bg-white p-5">
+            <h2 className="font-semibold text-slate-900">Recruiter Checklist</h2>
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              {pipelineChecklist.map((item) => (
+                <li key={item.label} className="flex items-center justify-between">
+                  <span>{item.label}</span>
+                  <span>{item.complete ? "✅" : "○"}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      </PageContainer>
-    </main>
+      </div>
+    </RecruiterShell>
   );
 }
