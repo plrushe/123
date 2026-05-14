@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PageContainer } from "@/components/PageContainer";
+import { RecruiterShell } from "@/components/RecruiterShell";
 import { PageHeader } from "@/components/PageHeader";
 import { requireRecruiter } from "@/lib/auth-guards";
 import { fetchRecruiterCandidates, parseRecruiterCandidateFilters } from "@/lib/recruiter-candidates";
@@ -14,9 +14,7 @@ export default async function RecruiterCandidatesPage({ searchParams }: Recruite
   const { data: candidates, error } = await fetchRecruiterCandidates(supabase, filters);
 
   return (
-    <main>
-      <PageContainer>
-        <div className="mt-12">
+    <RecruiterShell activeHref="/recruiter/candidates">
           <PageHeader title="Candidate Search" description="Browse and filter candidate profiles using structured details." />
 
           <form className="mt-8 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-5">
@@ -58,8 +56,6 @@ export default async function RecruiterCandidatesPage({ searchParams }: Recruite
               </ul>
             )}
           </section>
-        </div>
-      </PageContainer>
-    </main>
+    </RecruiterShell>
   );
 }
