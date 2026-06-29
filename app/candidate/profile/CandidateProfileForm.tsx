@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import type { ReactNode } from "react";
 import { saveCandidateProfileAction, uploadCvAction, type CandidateProfileState } from "@/app/candidate/profile/actions";
 import type { CandidateProfile, CvFile } from "@/lib/candidate-profile";
 
@@ -12,8 +13,8 @@ type CandidateProfileFormProps = {
 };
 
 export function CandidateProfileForm({ profile, cvFile }: CandidateProfileFormProps) {
-  const [profileState, profileAction, profilePending] = useActionState(saveCandidateProfileAction, initialState);
-  const [cvState, cvAction, cvPending] = useActionState(uploadCvAction, initialState);
+  const [profileState, profileAction] = useFormState(saveCandidateProfileAction, initialState);
+  const [cvState, cvAction] = useFormState(uploadCvAction, initialState);
 
   return (
     <div className="mt-8 grid gap-6">
@@ -35,9 +36,7 @@ export function CandidateProfileForm({ profile, cvFile }: CandidateProfileFormPr
         </label>
         {profileState.error ? <p className="text-sm text-red-600">{profileState.error}</p> : null}
         {profileState.success ? <p className="text-sm text-emerald-700">{profileState.success}</p> : null}
-        <button disabled={profilePending} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">
-          {profilePending ? "Saving..." : "Save profile"}
-        </button>
+        <SubmitButton pendingLabel="Saving...">Save profile</SubmitButton>
       </form>
 
       <form action={cvAction} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
@@ -54,10 +53,19 @@ export function CandidateProfileForm({ profile, cvFile }: CandidateProfileFormPr
         </label>
         {cvState.error ? <p className="text-sm text-red-600">{cvState.error}</p> : null}
         {cvState.success ? <p className="text-sm text-emerald-700">{cvState.success}</p> : null}
-        <button disabled={cvPending} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">
-          {cvPending ? "Uploading..." : cvFile ? "Replace CV" : "Upload CV"}
-        </button>
+        <SubmitButton pendingLabel="Uploading...">{cvFile ? "Replace CV" : "Upload CV"}</SubmitButton>
       </form>
     </div>
+  );
+}
+
+
+function SubmitButton({ children, pendingLabel }: { children: ReactNode; pendingLabel: string }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button disabled={pending} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">
+      {pending ? pendingLabel : children}
+    </button>
   );
 }

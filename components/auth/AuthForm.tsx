@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import type { AuthFormState } from "@/app/auth/actions";
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
 const INITIAL_STATE: AuthFormState = {};
 
 export function AuthForm({ title, description, buttonLabel, action, includeRole = false }: Props) {
-  const [state, formAction, pending] = useActionState(action, INITIAL_STATE);
+  const [state, formAction] = useFormState(action, INITIAL_STATE);
 
   return (
     <div className="mx-auto mt-16 max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -51,10 +51,19 @@ export function AuthForm({ title, description, buttonLabel, action, includeRole 
 
         {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
 
-        <button disabled={pending} className="w-full rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800 disabled:opacity-70">
-          {pending ? "Please wait..." : buttonLabel}
-        </button>
+        <SubmitButton label={buttonLabel} />
       </form>
     </div>
+  );
+}
+
+
+function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <button disabled={pending} className="w-full rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800 disabled:opacity-70">
+      {pending ? "Please wait..." : label}
+    </button>
   );
 }
