@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { createJobAction, type CreateJobState } from "@/app/recruiter/jobs/actions";
 
 const initialState: CreateJobState = {};
 
 export function JobCreateForm() {
-  const [state, formAction, pending] = useActionState(createJobAction, initialState);
+  const [state, formAction] = useFormState(createJobAction, initialState);
 
   return (
     <form action={formAction} className="mt-8 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -38,9 +38,18 @@ export function JobCreateForm() {
       </div>
       {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
       {state.success ? <p className="text-sm text-emerald-700">{state.success}</p> : null}
-      <button disabled={pending} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">
-        {pending ? "Saving..." : "Save job"}
-      </button>
+      <SubmitButton />
     </form>
+  );
+}
+
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button disabled={pending} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60">
+      {pending ? "Saving..." : "Save job"}
+    </button>
   );
 }

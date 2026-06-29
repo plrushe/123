@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { applyToJobAction, type ApplyState } from "@/app/jobs/[id]/actions";
 
 const initialState: ApplyState = {};
@@ -11,7 +11,7 @@ type ApplyJobFormProps = {
 
 export function ApplyJobForm({ jobId }: ApplyJobFormProps) {
   const applyWithJobId = applyToJobAction.bind(null, jobId);
-  const [state, formAction, pending] = useActionState(applyWithJobId, initialState);
+  const [state, formAction] = useFormState(applyWithJobId, initialState);
 
   return (
     <form action={formAction} className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6">
@@ -31,12 +31,21 @@ export function ApplyJobForm({ jobId }: ApplyJobFormProps) {
       {state.error ? <p className="mt-3 text-sm text-red-600">{state.error}</p> : null}
       {state.success ? <p className="mt-3 text-sm text-emerald-700">{state.success}</p> : null}
 
-      <button
-        disabled={pending}
-        className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
-      >
-        {pending ? "Submitting..." : "Submit application"}
-      </button>
+      <SubmitButton />
     </form>
+  );
+}
+
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      disabled={pending}
+      className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-60"
+    >
+      {pending ? "Submitting..." : "Submit application"}
+    </button>
   );
 }

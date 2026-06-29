@@ -5,20 +5,41 @@ import { PageHeader } from "@/components/PageHeader";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/lib/applications";
 
-type RecruiterApplicantRow = {
+type RecruiterApplicantQueryRow = {
   id: string;
   cover_letter: string | null;
   status: ApplicationStatus;
   created_at: string;
-  jobs: {
-    id: string;
-    title: string;
-  } | null;
-  profiles: {
-    email: string;
-    full_name: string | null;
-  } | null;
+  jobs:
+    | {
+        id: string;
+        title: string;
+      }
+    | {
+        id: string;
+        title: string;
+      }[]
+    | null;
+  profiles:
+    | {
+        email: string;
+        full_name: string | null;
+      }
+    | {
+        email: string;
+        full_name: string | null;
+      }[]
+    | null;
 };
+
+type RecruiterApplicantRow = Omit<RecruiterApplicantQueryRow, "jobs" | "profiles"> & {
+  jobs: Extract<RecruiterApplicantQueryRow["jobs"], { id: string }> | null;
+  profiles: Extract<RecruiterApplicantQueryRow["profiles"], { email: string }> | null;
+};
+
+function firstRelation<T>(relation: T | T[] | null): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
+}
 
 export default async function RecruiterApplicantsPage() {
   const supabase = await createSupabaseServerClient();
@@ -35,7 +56,11 @@ export default async function RecruiterApplicantsPage() {
     .eq("jobs.recruiter_id", user.id)
     .order("created_at", { ascending: false });
 
-  const rows = (applications ?? []) as RecruiterApplicantRow[];
+  const rows = ((applications ?? []) as RecruiterApplicantQueryRow[]).map((application) => ({
+    ...application,
+    jobs: firstRelation(application.jobs),
+    profiles: firstRelation(application.profiles),
+  }));
 
   return (
     <RecruiterShell activeHref="/recruiter/applicants">

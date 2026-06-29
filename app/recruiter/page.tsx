@@ -13,18 +13,38 @@ type RecruiterJobRow = {
   created_at: string;
 };
 
-type RecruiterApplicationRow = {
+type RecruiterApplicationQueryRow = {
   id: string;
   status: ApplicationStatus;
   created_at: string;
-  jobs: {
-    id: string;
-    title: string;
-  } | null;
-  profiles: {
-    full_name: string | null;
-  } | null;
+  jobs:
+    | {
+        id: string;
+        title: string;
+      }
+    | {
+        id: string;
+        title: string;
+      }[]
+    | null;
+  profiles:
+    | {
+        full_name: string | null;
+      }
+    | {
+        full_name: string | null;
+      }[]
+    | null;
 };
+
+type RecruiterApplicationRow = Omit<RecruiterApplicationQueryRow, "jobs" | "profiles"> & {
+  jobs: Extract<RecruiterApplicationQueryRow["jobs"], { id: string }> | null;
+  profiles: Extract<RecruiterApplicationQueryRow["profiles"], { full_name: string | null }> | null;
+};
+
+function firstRelation<T>(relation: T | T[] | null): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
+}
 
 const jobStatusLabel: Record<JobStatus, string> = {
   published: "Published Jobs",
@@ -58,7 +78,11 @@ export default async function RecruiterPage() {
   ]);
 
   const jobs = (jobsResult.data ?? []) as RecruiterJobRow[];
-  const applications = (applicationsResult.data ?? []) as RecruiterApplicationRow[];
+  const applications = ((applicationsResult.data ?? []) as RecruiterApplicationQueryRow[]).map((application) => ({
+    ...application,
+    jobs: firstRelation(application.jobs),
+    profiles: firstRelation(application.profiles),
+  }));
 
   const jobStatusCounts: Record<JobStatus, number> = {
     draft: 0,
