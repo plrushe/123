@@ -8,7 +8,7 @@ export type RecruiterCandidateFilters = {
   visaStatus: string;
 };
 
-export type RecruiterCandidateCard = {
+type RecruiterCandidateQueryCard = {
   id: string;
   headline: string | null;
   current_location: string | null;
@@ -16,10 +16,23 @@ export type RecruiterCandidateCard = {
   years_experience: number | null;
   tefl_status: string | null;
   availability: string | null;
-  profiles: {
-    full_name: string | null;
-  } | null;
+  profiles:
+    | {
+        full_name: string | null;
+      }
+    | {
+        full_name: string | null;
+      }[]
+    | null;
 };
+
+export type RecruiterCandidateCard = Omit<RecruiterCandidateQueryCard, "profiles"> & {
+  profiles: Extract<RecruiterCandidateQueryCard["profiles"], { full_name: string | null }> | null;
+};
+
+function firstRelation<T>(relation: T | T[] | null): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
+}
 
 export function parseRecruiterCandidateFilters(searchParams: Record<string, string | string[] | undefined>): RecruiterCandidateFilters {
   const getValue = (key: string) => {
@@ -52,5 +65,11 @@ export async function fetchRecruiterCandidates(supabase: SupabaseClient, filters
   const { data, error } = await query;
   if (error) return { data: [] as RecruiterCandidateCard[], error: error.message };
 
-  return { data: (data ?? []) as RecruiterCandidateCard[], error: null };
+  return {
+    data: ((data ?? []) as RecruiterCandidateQueryCard[]).map((candidate) => ({
+      ...candidate,
+      profiles: firstRelation(candidate.profiles),
+    })),
+    error: null,
+  };
 }

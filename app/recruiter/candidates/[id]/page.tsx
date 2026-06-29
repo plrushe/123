@@ -7,6 +7,33 @@ type CandidateDetailPageProps = {
   params: { id: string };
 };
 
+type CandidateDetail = {
+  headline: string | null;
+  bio: string | null;
+  country_of_origin: string | null;
+  current_location: string | null;
+  target_location: string | null;
+  years_experience: number | null;
+  tefl_status: string | null;
+  degree_status: string | null;
+  visa_status: string | null;
+  availability: string | null;
+  profiles:
+    | {
+        full_name: string | null;
+        email: string;
+      }
+    | {
+        full_name: string | null;
+        email: string;
+      }[]
+    | null;
+};
+
+function firstRelation<T>(relation: T | T[] | null): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
+}
+
 export default async function CandidateDetailPage({ params }: CandidateDetailPageProps) {
   const { supabase } = await requireRecruiter();
 
@@ -17,6 +44,8 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
     .maybeSingle();
 
   if (!candidate) notFound();
+
+  const profile = firstRelation((candidate as CandidateDetail).profiles);
 
   const { data: cv } = await supabase
     .from("cv_files")
@@ -30,10 +59,10 @@ export default async function CandidateDetailPage({ params }: CandidateDetailPag
     <main>
       <PageContainer>
         <div className="mt-12">
-          <PageHeader title={candidate.profiles?.full_name ?? "Candidate"} description="Structured profile details for recruiter review." />
+          <PageHeader title={profile?.full_name ?? "Candidate"} description="Structured profile details for recruiter review." />
           <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <dl className="grid gap-4 text-sm text-slate-700 md:grid-cols-2">
-              <div><dt className="font-semibold text-slate-900">Email</dt><dd>{candidate.profiles?.email ?? "—"}</dd></div>
+              <div><dt className="font-semibold text-slate-900">Email</dt><dd>{profile?.email ?? "—"}</dd></div>
               <div><dt className="font-semibold text-slate-900">Headline</dt><dd>{candidate.headline ?? "—"}</dd></div>
               <div><dt className="font-semibold text-slate-900">Country of origin</dt><dd>{candidate.country_of_origin ?? "—"}</dd></div>
               <div><dt className="font-semibold text-slate-900">Current location</dt><dd>{candidate.current_location ?? "—"}</dd></div>
